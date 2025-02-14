@@ -67,7 +67,7 @@ def install_ffmpeg():
 
             # Verify installation
             if shutil.which("ffmpeg"):
-                st.success("✅ FFmpeg installed successfully!")
+                st.success("")
             else:
                 st.error("🚨 FFmpeg installation failed!")
 
