@@ -24,11 +24,15 @@ warnings.filterwarnings("ignore", category=UserWarning, module="whisper.transcri
 warnings.filterwarnings("ignore", category=RuntimeWarning, module="torch")
 
 # ✅ Setup FFmpeg Properly  
-ffmpeg_path = shutil.which("ffmpeg")
-if not ffmpeg_path:
-    st.error("🚨 FFmpeg not found! Please install it or check your environment.")
+# Manually set FFmpeg path
+ffmpeg_path = "C:\\ProgramData\\chocolatey\\bin\\ffmpeg.exe"
+
+if not os.path.exists(ffmpeg_path):
+    st.error("🚨 FFmpeg not found! Please install it or check the path.")
 else:
     os.environ["PATH"] += os.pathsep + os.path.dirname(ffmpeg_path)
+    st.success("✅ FFmpeg is properly configured!")
+
 
 # ✅ Load Whisper Model  
 device = "cuda" if torch.cuda.is_available() else "cpu"
