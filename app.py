@@ -20,7 +20,7 @@ import subprocess
 # ✅ Configure Gemini API  
 dotenv.load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or st.secrets.get("GEMINI_API_KEY")
-genai.configure(api_key="GEMINI_API_KEY")  
+ 
 model = genai.GenerativeModel("gemini-2.0-flash")
 
 warnings.filterwarnings("ignore", category=UserWarning, module="torch")  
