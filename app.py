@@ -12,7 +12,7 @@ import torch
 import warnings
 from deep_translator import GoogleTranslator 
 import dotenv
-import imageio
+import imageio_ffmpeg
 
 # Configure Gemini API
 dotenv.load_dotenv()
@@ -24,11 +24,13 @@ warnings.filterwarnings("ignore", category=UserWarning, module="torch")
 warnings.filterwarnings("ignore", category=UserWarning, module="whisper.transcribe")  
 warnings.filterwarnings("ignore", category=RuntimeWarning, module="torch")
 
-# Load Whisper Model  
-ffmpeg_path = imageio.plugins.ffmpeg.get_exe()
+# ✅ Setup FFmpeg Properly
+ffmpeg_path = imageio_ffmpeg.get_ffmpeg_bin()
 os.environ["PATH"] += os.pathsep + os.path.dirname(ffmpeg_path)
 
+# ✅ Load Whisper Model
 model_whisper = whisper.load_model("tiny", device="cuda" if torch.cuda.is_available() else "cpu")
+
 st.title("🧘 AI-Powered Mental Health Journal")  
 st.write("Record your thoughts and get AI-generated insights!")  
 
@@ -41,7 +43,6 @@ language_choice = st.selectbox("Choose Language for Audio Feedback:", list(langu
 language_code = language_map[language_choice]  
 
 translator = GoogleTranslator(source='auto', target=language_code)  
-  # ✅ Initialize Translator  
 audio_path = None  
 
 if option == "Upload Audio":  
@@ -80,7 +81,7 @@ if audio_path:
             Analyze this journal entry in **less than 150 words**. Summarize in 3 parts:
             1. **Emotional Tone** - Identify key emotions in a few words.
             2. **Possible Reasons** - Explain briefly why the person might feel this way.
-            3. **Quick Self-Care Tips** - Suggest 4-5 practical actions in bullet points and what he/she can do in order.
+            3. **Quick Self-Care Tips** - Suggest 4-5 practical actions in bullet points.
             
             Entry: {transcribed_text}
             """  
@@ -88,12 +89,9 @@ if audio_path:
             response = model.generate_content(prompt)  
 
             # ✅ Ensure response is properly extracted
-            if hasattr(response, "text"):  
-                full_response = response.text  
-            elif hasattr(response, "candidates") and response.candidates:  
-                full_response = response.candidates[0].content  
-            else:  
-                full_response = "No insights generated."
+            full_response = response.text if hasattr(response, "text") else (
+                response.candidates[0].content if hasattr(response, "candidates") and response.candidates else "No insights generated."
+            )
 
             # ✅ Prevent mid-sentence cut-off  
             sentences = re.split(r'(?<=[.!?]) +', full_response)  
@@ -103,8 +101,7 @@ if audio_path:
             st.write(insights)
 
             # ✅ Translate only for Audio  
-            translated_text = GoogleTranslator(source='auto', target=language_code).translate(insights)
-  
+            translated_text = translator.translate(insights)
 
             # Convert Translated Insights to Audio  
             cleaned_insights = re.sub(r'[*_`]', '', translated_text)  
