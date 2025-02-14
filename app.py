@@ -30,41 +30,45 @@ warnings.filterwarnings("ignore", category=RuntimeWarning, module="torch")
 # Manually set FFmpeg path
 FFMPEG_URL = "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz"
 
-FFMPEG_URL = "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz"
-
 def install_ffmpeg():
     ffmpeg_path = shutil.which("ffmpeg")
-    if ffmpeg_path is None:  # Check if ffmpeg is already installed
-        st.warning("⚠️ FFmpeg not found! Downloading and setting it up...")
-
-        try:
-            # Download FFmpeg using requests instead of wget
-            response = requests.get(FFMPEG_URL, stream=True)
-            if response.status_code == 200:
-                with open("ffmpeg.tar.xz", "wb") as f:
-                    for chunk in response.iter_content(chunk_size=1024):
-                        f.write(chunk)
-
-                # Extract FFmpeg
-                os.makedirs("ffmpeg", exist_ok=True)
-                with tarfile.open("ffmpeg.tar.xz", "r:xz") as tar:
-                    tar.extractall(path="ffmpeg", members=[m for m in tar.getmembers() if m.name.startswith("ffmpeg")])
-
-                # Set environment path
-                os.environ["PATH"] += os.pathsep + os.path.abspath("ffmpeg")
-
-                # Verify installation
-                if shutil.which("ffmpeg"):
-                    st.success("✅ FFmpeg installed successfully!")
-                else:
-                    st.error("🚨 FFmpeg installation failed!")
-            else:
-                st.error(f"🚨 Failed to download FFmpeg. HTTP Status: {response.status_code}")
-
-        except Exception as e:
-            st.error(f"🚨 FFmpeg installation failed: {str(e)}")
-    else:
+    if ffmpeg_path:
         st.success("✅ FFmpeg is already installed!")
+        return
+
+    st.warning("⚠️ FFmpeg not found! Downloading and setting it up...")
+
+    try:
+        # Download FFmpeg
+        response = requests.get(FFMPEG_URL, stream=True)
+        if response.status_code == 200:
+            with open("ffmpeg.tar.xz", "wb") as f:
+                for chunk in response.iter_content(chunk_size=1024):
+                    f.write(chunk)
+
+            # Extract FFmpeg
+            os.makedirs("ffmpeg_bin", exist_ok=True)
+            with tarfile.open("ffmpeg.tar.xz", "r:xz") as tar:
+                tar.extractall(path="ffmpeg_bin")
+
+            # Locate the extracted ffmpeg binary
+            extracted_folder = [d for d in os.listdir("ffmpeg_bin") if d.startswith("ffmpeg")][0]
+            ffmpeg_bin_path = os.path.join("ffmpeg_bin", extracted_folder)
+
+            # Move FFmpeg binary to a known location
+            os.environ["PATH"] += os.pathsep + ffmpeg_bin_path
+
+            # Verify installation
+            if shutil.which("ffmpeg"):
+                st.success("✅ FFmpeg installed successfully!")
+            else:
+                st.error("🚨 FFmpeg installation failed!")
+
+        else:
+            st.error(f"🚨 Failed to download FFmpeg. HTTP Status: {response.status_code}")
+
+    except Exception as e:
+        st.error(f"🚨 FFmpeg installation failed: {str(e)}")
 
 # Run FFmpeg setup at startup
 install_ffmpeg()
