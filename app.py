@@ -131,13 +131,18 @@ if audio_path:
             # ✅ Generate AI Insights  
             st.write("🧠 **AI Insights & Suggestions:**")  
             prompt = f"""
-            Analyze this journal entry in **less than 150 words**. Summarize in 3 parts:
-            1. **Emotional Tone** - Identify key emotions in a few words.
-            2. **Possible Reasons** - Explain briefly why the person might feel this way.
-            3. **Quick Self-Care Tips** - Suggest 4-5 practical actions in bullet points.
-            
-            Entry: {transcribed_text}
-            """  
+            Analyze this journal entry in **less than 150 words**. You **must** complete all three points.  
+Use the given format strictly.  
+
+1️⃣ **Emotional Tone:** Identify key emotions in a few words.  
+2️⃣ **Possible Reasons:** Explain briefly why the person might feel this way.  
+3️⃣ **Quick Self-Care Tips:** Suggest **exactly** 4-5 practical actions in bullet points.  
+
+**Entry:**  
+{transcribed_text}  
+
+⚠️ Important: Do not skip any section. Answer all three parts completely.
+"""
 
             response = model.generate_content(prompt)  
             insights = response.text if hasattr(response, "text") else "No insights generated."
