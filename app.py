@@ -13,6 +13,7 @@ import warnings
 from deep_translator import GoogleTranslator 
 import dotenv
 import shutil
+import subprocess
 
 # ✅ Configure Gemini API  
 dotenv.load_dotenv()
@@ -25,13 +26,31 @@ warnings.filterwarnings("ignore", category=RuntimeWarning, module="torch")
 
 # ✅ Setup FFmpeg Properly  
 # Manually set FFmpeg path
-ffmpeg_path = shutil.which("ffmpeg")
+FFMPEG_URL = "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz"
 
-if ffmpeg_path:
-    os.environ["PATH"] += os.pathsep + os.path.dirname(ffmpeg_path)
-    st.success("✅ FFmpeg is properly configured!")
-else:
-    st.error("🚨 FFmpeg not found! Try adding 'ffmpeg' to your requirements file.")
+def install_ffmpeg():
+    ffmpeg_path = shutil.which("ffmpeg")
+    if ffmpeg_path is None:  # Check if ffmpeg is already installed
+        st.warning("⚠️ FFmpeg not found! Downloading and setting it up...")
+        
+        # Download FFmpeg binary
+        os.system(f"wget {FFMPEG_URL} -O ffmpeg.tar.xz")
+        os.system("mkdir -p ffmpeg")
+        os.system("tar -xf ffmpeg.tar.xz -C ffmpeg --strip-components=1")
+        
+        # Set environment path
+        os.environ["PATH"] += os.pathsep + os.path.abspath("ffmpeg")
+        
+        # Verify installation
+        if shutil.which("ffmpeg"):
+            st.success("✅ FFmpeg installed successfully!")
+        else:
+            st.error("🚨 FFmpeg installation failed!")
+    else:
+        st.success("✅ FFmpeg is already installed!")
+
+# Run FFmpeg setup at startup
+install_ffmpeg()
 
 
 # ✅ Load Whisper Model  
