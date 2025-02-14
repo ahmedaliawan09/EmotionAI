@@ -83,7 +83,7 @@ install_ffmpeg()
 
 # ✅ Load Whisper Model  
 device = "cuda" if torch.cuda.is_available() else "cpu"
-model_whisper = whisper.load_model("tiny", device=device)
+model_whisper = whisper.load_model("base", device=device)
 
 st.title("🧘 AI-Powered Mental Health Journal")  
 st.write("Record your thoughts and get AI-generated insights!")  
