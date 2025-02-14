@@ -13,6 +13,7 @@ import warnings
 from deep_translator import GoogleTranslator 
 import dotenv
 import imageio_ffmpeg
+import shutil
 
 # Configure Gemini API
 dotenv.load_dotenv()
