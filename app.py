@@ -25,13 +25,13 @@ warnings.filterwarnings("ignore", category=RuntimeWarning, module="torch")
 
 # ✅ Setup FFmpeg Properly  
 # Manually set FFmpeg path
-ffmpeg_path = "C:\\ProgramData\\chocolatey\\bin\\ffmpeg.exe"
+ffmpeg_path = shutil.which("ffmpeg")
 
-if not os.path.exists(ffmpeg_path):
-    st.error("🚨 FFmpeg not found! Please install it or check the path.")
-else:
+if ffmpeg_path:
     os.environ["PATH"] += os.pathsep + os.path.dirname(ffmpeg_path)
     st.success("✅ FFmpeg is properly configured!")
+else:
+    st.error("🚨 FFmpeg not found! Try adding 'ffmpeg' to your requirements file.")
 
 
 # ✅ Load Whisper Model  
