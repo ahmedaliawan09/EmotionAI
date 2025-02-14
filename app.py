@@ -23,11 +23,11 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or st.secrets.get("GEMINI_API_KEY")
 
 # ✅ Check if API Key Exists
 if not GEMINI_API_KEY:
-    st.error("🚨 API Key Not Found! Please check your GitHub Secrets or environment variables.")
+    #st.error("🚨 API Key Not Found! Please check your GitHub Secrets or environment variables.")
 else:
     genai.configure(api_key=GEMINI_API_KEY)
     model = genai.GenerativeModel("gemini-2.0-flash")
-    st.success("✅ API Key Loaded Securely")
+    #st.success("✅ API Key Loaded Secure")
 
 warnings.filterwarnings("ignore", category=UserWarning, module="torch")  
 warnings.filterwarnings("ignore", category=UserWarning, module="whisper.transcribe")  
@@ -40,10 +40,10 @@ FFMPEG_URL = "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-sta
 def install_ffmpeg():
     ffmpeg_path = shutil.which("ffmpeg")
     if ffmpeg_path:
-        st.success("✅ FFmpeg is already installed!")
+       # st.success("✅ FFmpeg is already installed!")
         return
 
-    st.warning("⚠️ FFmpeg not found! Downloading and setting it up...")
+    #st.warning("⚠️ FFmpeg not found! Downloading and setting it up...")
 
     try:
         # Download FFmpeg
