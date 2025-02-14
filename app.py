@@ -12,12 +12,10 @@ import torch
 import warnings
 from deep_translator import GoogleTranslator 
 import dotenv
-import imageio_ffmpeg
 import shutil
 
-# Configure Gemini API
+# ✅ Configure Gemini API  
 dotenv.load_dotenv()
-
 genai.configure(api_key="GEMINI_API_KEY")  
 model = genai.GenerativeModel("gemini-2.0-flash")  
 
@@ -25,20 +23,24 @@ warnings.filterwarnings("ignore", category=UserWarning, module="torch")
 warnings.filterwarnings("ignore", category=UserWarning, module="whisper.transcribe")  
 warnings.filterwarnings("ignore", category=RuntimeWarning, module="torch")
 
-# ✅ Setup FFmpeg Properly
-ffmpeg_path = imageio_ffmpeg.get_ffmpeg_bin()
-os.environ["PATH"] += os.pathsep + os.path.dirname(ffmpeg_path)
+# ✅ Setup FFmpeg Properly  
+ffmpeg_path = shutil.which("ffmpeg")
+if not ffmpeg_path:
+    st.error("🚨 FFmpeg not found! Please install it or check your environment.")
+else:
+    os.environ["PATH"] += os.pathsep + os.path.dirname(ffmpeg_path)
 
-# ✅ Load Whisper Model
-model_whisper = whisper.load_model("tiny", device="cuda" if torch.cuda.is_available() else "cpu")
+# ✅ Load Whisper Model  
+device = "cuda" if torch.cuda.is_available() else "cpu"
+model_whisper = whisper.load_model("tiny", device=device)
 
 st.title("🧘 AI-Powered Mental Health Journal")  
 st.write("Record your thoughts and get AI-generated insights!")  
 
-# Option to Upload or Record Audio  
+# ✅ Choose Input Method  
 option = st.radio("Choose Input Method:", ["Upload Audio", "Record Voice"])  
 
-# Language Selection for TTS  
+# ✅ Language Selection  
 language_map = {"English": "en", "Urdu": "ur", "Spanish": "es", "French": "fr"}  
 language_choice = st.selectbox("Choose Language for Audio Feedback:", list(language_map.keys()))  
 language_code = language_map[language_choice]  
@@ -46,9 +48,10 @@ language_code = language_map[language_choice]
 translator = GoogleTranslator(source='auto', target=language_code)  
 audio_path = None  
 
+# ✅ Handle Audio Upload or Recording  
 if option == "Upload Audio":  
     uploaded_audio = st.file_uploader("🎙️ Upload your voice journal (MP3/WAV)", type=["mp3", "wav"])  
-    if uploaded_audio is not None:  
+    if uploaded_audio:  
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_audio:  
             temp_audio.write(uploaded_audio.read())  
             audio_path = temp_audio.name  
@@ -56,13 +59,12 @@ if option == "Upload Audio":
 elif option == "Record Voice":  
     st.write("🎤 Press the button below to record your voice")  
     recorded_audio = mic_recorder(start_prompt="Start Recording", stop_prompt="Stop Recording")  
-
-    if recorded_audio and isinstance(recorded_audio, dict) and "bytes" in recorded_audio:  
+    if recorded_audio and "bytes" in recorded_audio:  
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_audio:  
             temp_audio.write(recorded_audio["bytes"])  
             audio_path = temp_audio.name  
 
-# Process Audio if Available  
+# ✅ Process Audio  
 if audio_path:  
     st.audio(audio_path, format="audio/wav")  
     st.write("🔄 Transcribing... Please wait.")  
@@ -75,9 +77,8 @@ if audio_path:
             st.write("📝 **Your Journal Entry:**")  
             st.write(transcribed_text)  
 
+            # ✅ Generate AI Insights  
             st.write("🧠 **AI Insights & Suggestions:**")  
-            
-            # ✅ Ensure short, complete responses
             prompt = f"""
             Analyze this journal entry in **less than 150 words**. Summarize in 3 parts:
             1. **Emotional Tone** - Identify key emotions in a few words.
@@ -88,23 +89,16 @@ if audio_path:
             """  
 
             response = model.generate_content(prompt)  
+            insights = response.text if hasattr(response, "text") else "No insights generated."
 
-            # ✅ Ensure response is properly extracted
-            full_response = response.text if hasattr(response, "text") else (
-                response.candidates[0].content if hasattr(response, "candidates") and response.candidates else "No insights generated."
-            )
+            # ✅ Ensure insights aren't cut-off mid-sentence  
+            sentences = re.split(r'(?<=[.!?]) +', insights)  
+            insights_clean = " ".join(sentences[:5])  
 
-            # ✅ Prevent mid-sentence cut-off  
-            sentences = re.split(r'(?<=[.!?]) +', full_response)  
-            insights = " ".join(sentences[:5])  # Show ~5 sentences max  
+            st.write(insights_clean)
 
-            # Display insights in English
-            st.write(insights)
-
-            # ✅ Translate only for Audio  
-            translated_text = translator.translate(insights)
-
-            # Convert Translated Insights to Audio  
+            # ✅ Translate & Convert to Speech  
+            translated_text = translator.translate(insights_clean)
             cleaned_insights = re.sub(r'[*_`]', '', translated_text)  
             tts = gTTS(text=cleaned_insights, lang=language_code)  
             audio_file = "insights.mp3"  
