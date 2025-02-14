@@ -12,18 +12,7 @@ import torch
 import warnings
 from deep_translator import GoogleTranslator 
 import dotenv
-import subprocess
-
-# Install FFmpeg if not available
-if not os.path.exists("/usr/bin/ffmpeg"):
-    os.system("apt-get update && apt-get install -y ffmpeg")
-
-# Verify FFmpeg installation
-try:
-    result = subprocess.run(["ffmpeg", "-version"], capture_output=True, text=True)
-    print(result.stdout)
-except FileNotFoundError:
-    print("⚠️ FFmpeg installation failed!")
+import imageio
 
 # Configure Gemini API
 dotenv.load_dotenv()
@@ -36,8 +25,10 @@ warnings.filterwarnings("ignore", category=UserWarning, module="whisper.transcri
 warnings.filterwarnings("ignore", category=RuntimeWarning, module="torch")
 
 # Load Whisper Model  
+ffmpeg_path = imageio.plugins.ffmpeg.get_exe()
+os.environ["PATH"] += os.pathsep + os.path.dirname(ffmpeg_path)
+
 model_whisper = whisper.load_model("tiny", device="cuda" if torch.cuda.is_available() else "cpu")
- 
 st.title("🧘 AI-Powered Mental Health Journal")  
 st.write("Record your thoughts and get AI-generated insights!")  
 
