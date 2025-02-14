@@ -20,8 +20,14 @@ import subprocess
 # ✅ Configure Gemini API  
 dotenv.load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or st.secrets.get("GEMINI_API_KEY")
- 
-model = genai.GenerativeModel("gemini-2.0-flash")
+
+# ✅ Check if API Key Exists
+if not GEMINI_API_KEY:
+    st.error("🚨 API Key Not Found! Please check your GitHub Secrets or environment variables.")
+else:
+    genai.configure(api_key=GEMINI_API_KEY)
+    model = genai.GenerativeModel("gemini-2.0-flash")
+    st.success("✅ API Key Loaded Securely")
 
 warnings.filterwarnings("ignore", category=UserWarning, module="torch")  
 warnings.filterwarnings("ignore", category=UserWarning, module="whisper.transcribe")  
