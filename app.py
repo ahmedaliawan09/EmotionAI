@@ -12,8 +12,20 @@ import torch
 import warnings
 from deep_translator import GoogleTranslator 
 import dotenv
+import subprocess
 
-# Configure Gemini API  
+# Install FFmpeg if not available
+if not os.path.exists("/usr/bin/ffmpeg"):
+    os.system("apt-get update && apt-get install -y ffmpeg")
+
+# Verify FFmpeg installation
+try:
+    result = subprocess.run(["ffmpeg", "-version"], capture_output=True, text=True)
+    print(result.stdout)
+except FileNotFoundError:
+    print("⚠️ FFmpeg installation failed!")
+
+# Configure Gemini API
 dotenv.load_dotenv()
 
 genai.configure(api_key="GEMINI_API_KEY")  
