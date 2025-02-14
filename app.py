@@ -16,6 +16,7 @@ import shutil
 import requests
 import tarfile
 import subprocess
+import time
 
 # ✅ Configure Gemini API  
 dotenv.load_dotenv()
@@ -155,15 +156,18 @@ Use the given format strictly.
 
             # ✅ Translate & Convert to Speech  
             translated_text = translator.translate(insights_clean)
-            cleaned_insights = re.sub(r'[*_`]', '', translated_text)  
-            tts = gTTS(text=cleaned_insights, lang=language_code)  
-            audio_file = "insights.mp3"  
-            tts.save(audio_file)  
-            st.audio(audio_file, format="audio/mp3")  
+            cleaned_insights = re.sub(r'[*_`]', '', translated_text)
+
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio_file:
+                tts = gTTS(text=cleaned_insights, lang=language_code)  
+                tts.save(temp_audio_file.name)
+                audio_file = temp_audio_file.name   
             
             # Cleanup  
             if os.path.exists(audio_file):
-                os.remove(audio_file)
+                st.audio(audio_file, format="audio/mp3")  
+                time.sleep(3)  # ✅ Delay to ensure Streamlit plays the audio before deletion
+                os.remove(audio_file)  # ✅ Delete the temp file after playing
         else:
             st.error("⚠️ Transcription failed. Please try again with a clearer audio.")
 
